@@ -1,3 +1,8 @@
+#
+#	Developed at IIT Hyderabad
+#	Abhishek, Santanu, Sakshi, Dr. Maunendra
+#
+#
 from read import start_extraction
 from revsr import start_search
 import logging
