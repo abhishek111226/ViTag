@@ -1,16 +1,16 @@
 										    
 # ViTag: Automatic Video Tagger #
  
-Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar 
+## Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar ##
 
-Developed at IIT Hyderabad, India
+### Developed at IIT Hyderabad, India ###
 										    
-*Description* : 
+### *Description* ### : 
 ViTag takes video file as input, extracts relevant frames by using various image 
 processing techniques, followed by usage of Google Reverse Image Search to get relevant
 keywords.
 
-*Dependencies*: OpenCV, Python
+### *Dependencies* ###: OpenCV, Python
 
 
 For bugs/suggestions write to: *cs15mtech11015@iith.ac.in* 
