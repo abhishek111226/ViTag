@@ -1,8 +1,8 @@
 										    
-	ViTag: Automatic Video Tagger
+	*ViTag: Automatic Video Tagger*
 	=============================
  
-	Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar    	
+	Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar 
 
 	Developed at IIT Hyderabad, India
 										    
