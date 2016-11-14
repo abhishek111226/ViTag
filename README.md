@@ -1,13 +1,11 @@
 *************************************************************************************
-*										    *	
-*	# H1 ViTag						    		    * 				
-*										    * 			
-*	Automatic Video Tagger							    * 	
-*										    *					
-*	Developed at IIT Hyderabad, India					    *
-*										    *
-*	Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar    *	
-*										    *
+										    
+	ViTag: Automatic Video Tagger							     	
+	=============================									    									 										    
+	Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar    	
+
+	Developed at IIT Hyderabad, India
+										    
 *************************************************************************************
 
 *Description* : 
@@ -24,5 +22,5 @@ For bugs/suggestions write to: *cs15mtech11015@iith.ac.in*
 
 
 *2016*
-=====================================================================================
+
 
