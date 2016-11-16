@@ -1,8 +1,3 @@
-#
-#	Developed at IIT Hyderabad
-#	Abhishek, Santanu, Sakshi, Dr.Maunendra
-#
-#
 import cv2
 import os
 import sys
@@ -14,14 +9,21 @@ import glob
 from skimage.measure import structural_similarity as ssim
 from skimage import color;
 import matplotlib.pyplot as plt
+#from skimage.measure import compare_ssim as ssim
 from joblib import Parallel, delayed
 import multiprocessing
 import logging
 import math
 
 def mse(imageA, imageB):
+	# the 'Mean Squared Error' between the two images is the
+	# sum of the squared difference between the two images;
+	# NOTE: the two images must have the same dimension
 	err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
 	err /= float(imageA.shape[0] * imageA.shape[1])
+	
+	# return the MSE, the lower the error, the more "similar"
+	# the two images are
 	return err
 
 
@@ -31,6 +33,7 @@ def feature_compare(thr_id, dir, file_cnt, window):
     start=min(thr_id*window+1, file_cnt);
     end=min(start+window,file_cnt);
     scores =[];
+   # print start
     exit=0;
     retain =[];	
     if start>=end:
@@ -45,14 +48,20 @@ def feature_compare(thr_id, dir, file_cnt, window):
 		break;        
 	scores.append(score)
         img1= img2
+    #    print "tick \n"
     if len(scores) == 0:
 	return 
     if len(scores) == 1:
 	  return os.path.join(dir, '%d.png') % (start)
     if exit!=1:
+	   # print scores
 	    min_index, min_score = min(enumerate(scores), key=operator.itemgetter(1))
 	    if min_score >= MIN_MATCH_COUNT:
+		#best case
 		max_index, max_value = max(enumerate(scores), key=operator.itemgetter(1))
+		# find image number based on index
+		#if len(scores)==1:
+		#	select=0;
 		if max_index==0:
 			select=0;
 		elif max_index==window-2:
@@ -62,6 +71,10 @@ def feature_compare(thr_id, dir, file_cnt, window):
 		else: 
 			select = max_index; 
 	    else:
+		# easy case
+		#if len(scores)==1:
+		#	select=0;
+		#print scores
 		if min_index==0:
 			if scores[1] < MAX_UNMATCH_COUNT:
 				select=1;
@@ -76,6 +89,8 @@ def feature_compare(thr_id, dir, file_cnt, window):
 			select= min_index;
 		else:
 			select= min_index+1;
+		# find image number based on index		
+    #shutil.copyfile(os.path.join(dir, '%d.png') % (start+select), os.path.join(dir+'/updated/', '%d.png') % (start+select))	
     return os.path.join(dir, '%d.png') % (start+select)
 
 
@@ -85,7 +100,7 @@ def feature_matching(img1, img2):
     kp2, des2 = sift.detectAndCompute(img2,None)
     FLANN_INDEX_KDTREE = 0
     index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-    search_params = dict(checks=50)   
+    search_params = dict(checks=50)   # or pass empty dictionary
 
     flann = cv2.FlannBasedMatcher(index_params,search_params)
 
@@ -97,6 +112,35 @@ def feature_matching(img1, img2):
         	good.append(m)
 
     return len(good)
+
+    #if len(good)>MIN_MATCH_COUNT:
+	    #src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
+	    #dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
+
+	    #M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+	    #matchesMask = mask.ravel().tolist()
+
+	    #h,w,t  = img1.shape
+	    #pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+	    #dst = cv2.perspectiveTransform(pts,M)
+
+	    #img2 = cv2.polylines(img2,[np.int32(dst)],True,255,3, cv2.LINE_AA)
+	#    return 1	
+
+    #else:
+	    #print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
+	    #matchesMask = None
+    #	    return 0	
+
+    #draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+     #              singlePointColor = None,
+      #             matchesMask = matchesMask, # draw only inliers
+       #            flags = 2)
+
+    # img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
+
+    # plt.imshow(img3, 'gray'),plt.show()
+
 	
 def feature_pass(dir, window):
     path = dir
@@ -130,16 +174,19 @@ def strctural_similarity(thr_id,window_size,sorted_files):
 	img1 = color.rgb2gray(img1)
 	scores = []	
 	for i in range(start+1,end):
+		#print "Current File Being Processed is: " + sorted_files[i]
        		img2 = cv2.imread(os.path.join(sorted_files[i]))
 		img2 = color.rgb2gray(img2)		
 		s = ssim(img1,img2)
 		scores.append(s)
 		img1=img2;
+	#FIXME: Remove me
 	if len(scores)==0: 
 		return 
 	if len(scores)==1: 
 		return os.path.join(sorted_files[start])	
 	max_index, max_value = max(enumerate(scores), key=operator.itemgetter(1))
+	# find image number based on index
 	if max_index==0:
 		if round(scores[max_index],1) == round(scores[max_index+1],1) :
 			select=1;
@@ -158,9 +205,18 @@ def strctural_similarity(thr_id,window_size,sorted_files):
 		else:
 			select=-1
 	if select!=-1:
+		#temp = []
+		#num = [] 
+		#num = re.findall(r'\d+',str(sorted_files[start+select]))
+		#for i in range(start,end):
+		#	if i!= start+select:
+		#		os.remove(os.path.join(sorted_files[i]))
+		#shutil.copyfile(os.path.join(sorted_files[start+select]), os.path.join(dir+'updated_ss/'+str(num[0])+'.png'))	
+		#print "selected " + str(sorted_files[start+select])
 		return os.path.join(sorted_files[start+select])			
 
 def ss_pass(selected_files, window):
+        #print "Image files are: "
 	logging.info("----------SSIM pass started-------")	
 	sorted_files = sorted(selected_files, key = lambda x: x.split('/')[-1])
 	num_of_iterations = len(sorted_files) / window
@@ -176,10 +232,14 @@ def ss_pass(selected_files, window):
     		selected = selected + Parallel(n_jobs=remaining)(delayed(strctural_similarity)(j,window,sorted_files)for j in range(num_of_iterations,num_of_iterations+remaining))
 
 	logging.info("----------SSIM pass finished-------")	
+	#print "selected "
+	#print selected
 	return selected 
 
 
 def video_to_frames(video, path_output_dir):
+    # extract frames from a video and save to directory as 'x.png' where 
+    # x is the frame index
     logging.info("----------Video reading started-------")	
     vidcap = cv2.VideoCapture(video)
     success, image = vidcap.read()
@@ -192,9 +252,20 @@ def video_to_frames(video, path_output_dir):
 			break;
 		err = mse(prev_image,image)
 		if err>3500:
+			#skip = feature_matching(prev_image, image)	
+			#img1 = color.rgb2gray(prev_image)
+			#img2 = color.rgb2gray(image)
+			#sim = ssim(img1, img2)	
+			#if skip==0:	
 			cv2.imwrite(os.path.join(path_output_dir, '%d.png') % count, image)
 			count += 1
 			prev_image= image
+			#else:
+			#	print "\n skipping image due to features"
+			#    prev_image= image		
+		#else:
+			#    print "\n skipping image"
+        	
     cv2.destroyAllWindows()
     vidcap.release()
     logging.info("----------Video reading complete-------")	
@@ -202,33 +273,43 @@ def video_to_frames(video, path_output_dir):
 
 def compute_window_sizes(frames_cnt):
 	logging.info("Frames selected from video: "+ str(frames_cnt)) 
-	if(frames_cnt > 500):
+	if(frames_cnt >= 20):
 		temp = frames_cnt / 10;
 		a =  math.floor(math.sqrt(temp/2));
-		b = 2*a;
+		b = 2*a;		
+		a = int(a)
+		b = int(b)
+		if(a==2):
+			a=3;
+			b=3;
+		if(a==1):
+			b=3;
 	else :
-		temp = frames_cnt / 10;
-		a =  math.floor(math.sqrt(temp/2));
-		b = 2*a;
-	if(a<=2):
-		a=3
-		b=5
-	a = int(a)
-	b = int(b)
+		a=-1
+		b=-1
 	logging.info("Window_1 size: "+ str(a)) 	
 	logging.info("Window_2 size: "+ str(b)) 		
 	return a, b;	
 
 def start_extraction(video, dir):
+	#FIXME: Uncomment me once testing is done.	
 	name = video.split('/')[-1]
 	frames_cnt = video_to_frames(video, dir);
 	logging.info("Frames selected from video: "+ str(frames_cnt)) 	
 	window_1, window_2 = compute_window_sizes(frames_cnt);
-	selected = feature_pass(dir,window_1)
+	if(window_1 > 1):	
+		selected = feature_pass(dir,window_1)
+	else:
+		selected = []
+		for filename in os.listdir(dir):
+   		  selected.append(os.path.join(dir,filename))
 	selected = filter(None, selected)
 	logging.info("Files selected after feature detection "+str(len(selected)))
 	logging.info(selected)	
-	selected_further = ss_pass(selected,window_2)
+	if(window_2 > 1):	
+		selected_further = ss_pass(selected,window_2)
+	else:
+		selected_further = selected
 	selected_further = filter(None, selected_further)
 	logging.info("Files selected after ssim"+str(len(selected_further)))
 	logging.info(selected_further)	
