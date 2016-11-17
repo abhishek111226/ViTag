@@ -69,8 +69,10 @@ def processInput(path, num_files):
 
     except Exception, e:
         logging.info("Failed to encode image search URL:" +str(e))
+	return ""
 
     return retrieve(fetchUrl)
+    
 
 def start_search(files):	
 	path = dir

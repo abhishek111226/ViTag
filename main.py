@@ -88,7 +88,7 @@ ttk.Separator(window,orient=HORIZONTAL).pack(fill="x")
 
 tags=''
 cnt=0
-for x in results:
+for x in output:
     cnt=cnt+1;
     if(cnt %3==0):
 	tags= tags+"("+str(cnt)+") "+x + '\n'
