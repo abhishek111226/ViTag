@@ -27,11 +27,18 @@ def mse(imageA, imageB):
 	return err
 
 
-def feature_compare(thr_id, dir, file_cnt, window):
+def feature_compare(thr_id, dir, file_cnt, window, isSlide):
     MIN_MATCH_COUNT = 100
     MAX_UNMATCH_COUNT = 100
-    start=min(thr_id*window+1, file_cnt);
-    end=min(start+window,file_cnt);
+    if isSlide:
+	offset = int(window/2); 
+	start = min(thr_id*window-offset, file_cnt); 
+	if start<0:
+		start=0; 	
+	end = min(start+window,file_cnt);
+    else:
+	start=min(thr_id*window+1, file_cnt);
+    	end=min(start+window,file_cnt);
     scores =[];
    # print start
     exit=0;
@@ -153,21 +160,33 @@ def feature_pass(dir, window):
     logging.info("No of iterations " + str(num_of_iterations))
     selected = []	
     for i in range(0,num_of_iterations, num_of_processors):
-		selected = selected + Parallel(n_jobs=num_of_processors)(delayed(feature_compare)(j,dir,num_files, window) for j in range(i,i+num_of_processors))
+		selected = selected + Parallel(n_jobs=num_of_processors)(delayed(feature_compare)(j,dir,num_files, window, False) for j in range(i,i+num_of_processors))
 
     remaining = num_files % window	
     if remaining != 0 :
-    	selected = selected + Parallel(n_jobs=remaining)(delayed(feature_compare)(j,dir,num_files, window) for j in range(i,i+remaining))
+    	selected = selected + Parallel(n_jobs=remaining)(delayed(feature_compare)(j,dir,num_files, window, False) for j in range(i,i+remaining))
 	
+    logging.info("----------Sliding window for Feature matching started-------")	
+    for i in range(1,num_of_iterations, num_of_processors):
+		selected = selected + Parallel(n_jobs=num_of_processors)(delayed(feature_compare)(j,dir,num_files, window, True) for j in range(i,i+num_of_processors))
+
+
     logging.info("----------Feature matching pass finished-------")	
+
     return selected
 
 
 
-
-def strctural_similarity(thr_id,window_size,sorted_files):
-	start = min(thr_id*window_size, len(sorted_files)-1)
-	end = min(start + window_size , len(sorted_files))
+def strctural_similarity(thr_id,window_size,sorted_files, isSlide):
+	if isSlide:
+		offset = int(window_size/2); 
+		start = min(thr_id*window_size-offset, len(sorted_files)-1); 
+		if start<0:
+			start=0; 
+		end = min(start + window_size , len(sorted_files))
+    	else:	
+		start = min(thr_id*window_size, len(sorted_files)-1)
+		end = min(start + window_size , len(sorted_files))
 	if start>=end:
 		return	
 	img1 = cv2.imread(os.path.join(sorted_files[start]))
@@ -225,13 +244,19 @@ def ss_pass(selected_files, window):
     	logging.info("parallelization count " + str(num_of_processors))
     	logging.info("No of iterations " + str(num_of_iterations))
     	for i in range(0,num_of_iterations, num_of_processors):
-	    	selected = selected + Parallel(n_jobs=num_of_processors)(delayed(strctural_similarity)(j,window,sorted_files) for j in range(i,i+num_of_processors))	
+	    	selected = selected + Parallel(n_jobs=num_of_processors)(delayed(strctural_similarity)(j,window,sorted_files, False) for j in range(i,i+num_of_processors))	
 	remaining = len(sorted_files) % window	
 	
 	if remaining != 0 :
-    		selected = selected + Parallel(n_jobs=remaining)(delayed(strctural_similarity)(j,window,sorted_files)for j in range(num_of_iterations,num_of_iterations+remaining))
+    		selected = selected + Parallel(n_jobs=remaining)(delayed(strctural_similarity)(j,window,sorted_files, False)for j in range(num_of_iterations,num_of_iterations+remaining))
+
+	logging.info("----------Sliding window for SSIM started-------")	
+	for i in range(1,num_of_iterations, num_of_processors):
+	    	selected = selected + Parallel(n_jobs=num_of_processors)(delayed(strctural_similarity)(j,window,sorted_files, True) for j in range(i,i+num_of_processors))
+
 
 	logging.info("----------SSIM pass finished-------")	
+
 	#print "selected "
 	#print selected
 	return selected 
@@ -270,12 +295,44 @@ def video_to_frames(video, path_output_dir):
     vidcap.release()
     logging.info("----------Video reading complete-------")	
     return count-1	
+'''
+Intuition
 
+(N/a + (N/a) -1 )/b +  (N/a + (N/a) -1 )/b -1
+
+2(N/a + (N/a) -1 )/b -1 ~ 20
+
+2(N/a + (N/a) -1 )/b ~ 21
+
+(N/a + (N/a) -1 )/b ~ 21/2
+
+N/a + (N/a) -1 ~ 21/2*b
+
+2N/a ~ 21/2*b +1
+
+2N/a ~ 21/2*b + 1
+
+b = 2a
+
+2N/a ~ 21*a + 1
+
+2N/a ~ 21*a +1
+
+2N/a ~ 21*a 
+
+2N ~ 21*a*a
+
+2N/21 ~ a**2
+
+a =sqrt(2N/21)
+
+
+'''
 def compute_window_sizes(frames_cnt):
 	logging.info("Frames selected from video: "+ str(frames_cnt)) 
 	if(frames_cnt >= 20):
-		temp = frames_cnt / 10;
-		a =  math.floor(math.sqrt(temp/2));
+		#temp = frames_cnt / 10;
+		a =  math.floor(math.sqrt(2*frames_cnt/21));
 		b = 2*a;		
 		a = int(a)
 		b = int(b)
