@@ -1,0 +1,41 @@
+INFO:root:
+
+ ---------------- ViTag --------------
+INFO:root:
+
+ ---------------- Logging information--------------
+INFO:root:
+
+ -----Video:  path: 
+INFO:root:----------Video reading started-------
+INFO:root:----------Video reading complete-------
+INFO:root:Frames selected from video: 0
+INFO:root:Frames selected from video: 0
+INFO:root:Window_1 size: -1
+INFO:root:Window_2 size: -1
+INFO:root:Files selected after feature detection 0
+INFO:root:[]
+INFO:root:Files selected after ssim0
+INFO:root:[]
+INFO:root:---------- No. of files: 0
+INFO:root:****No result from any image search****
+INFO:root:Results are 
+INFO:root:[]
+INFO:root:Output shown
+INFO:root:[]
+INFO:root:Program executed successfully
+INFO:root:
+
+ ----------------END--------------
+INFO:root:
+
+ ----------------ViTag--------------
+INFO:root:
+
+ 		 Developed At IIT Hyderabad, India
+INFO:root:
+
+ 		 Abhishek Patwardhan, Santanu Das, Sakshi Varshney, Maundendra Desarkar
+INFO:root:
+
+ 		 For Bugs contact : cs15mtech11015@iith.ac.in
