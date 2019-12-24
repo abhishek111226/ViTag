@@ -5,9 +5,9 @@
 
 ## Authors: Abhishek A. Patwardhan, Santanu Das, Sakshi Varshney, Dr. Maundera Desarkar, Dr. Debi Prosad Dogra ##
 
-An implementation based on our submission accepted at IEEE International Conference on Multimedia Big Data (BigMM) 2019
-September 12, 2019 
-Singapore
+### IEEE International Conference on Multimedia Big Data (BigMM) 2019 September 12, 2019  Singapore ###
+
+#### https://ieeexplore.ieee.org/document/8919469 ####
 
 ### Developed at IIT Hyderabad, India ###
 
